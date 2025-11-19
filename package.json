@@ -1,0 +1,34 @@
+{
+  "name": "seu-bus-app",
+  "version": "1.0.0",
+  "description": "东南大学校园接驳车查询windows版",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.example.seubus",
+    "productName": "东南大学校园接驳车查询",
+    "icon": "school.ico",
+    "artifactName": "东南大学校园接驳车查询-v${version}安装程序.${ext}",
+    "files": [
+      "**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "school.ico",
+      "uninstallerIcon": "school.ico"
+    }
+  },
+  "author": "WJHGROUP",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^39.2.2",
+    "electron-builder": "^26.0.12"
+  }
+}
