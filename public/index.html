@@ -30,11 +30,11 @@
                 <label for="mode-toggle">选择查询模式：</label>
                 <div class="toggle-switch mode-switch">
                     <input type="radio" id="mode-realtime" name="mode" value="realtime" checked>
-                    <label for="mode-realtime">实时查询</label>
+                    <label for="mode-realtime">按起点查询</label>
                     <input type="radio" id="mode-destination" name="mode" value="destination">
-                    <label for="mode-destination">反向查询</label>
+                    <label for="mode-destination">按终点查询</label>
                     <input type="radio" id="mode-all" name="mode" value="all">
-                    <label for="mode-all">完整时刻表</label>
+                    <label for="mode-all">时刻表查询</label>
                 </div>
             </div>
 
@@ -45,6 +45,16 @@
                     <label for="workday">工作日</label>
                     <input type="radio" id="holiday" name="day-type" value="holiday">
                     <label for="holiday">节假日</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="date-range">选择查看日期：</label>
+                <div class="toggle-switch">
+                    <input type="radio" id="date-today" name="date-range" value="today" checked>
+                    <label for="date-today">今日</label>
+                    <input type="radio" id="date-tomorrow" name="date-range" value="tomorrow">
+                    <label for="date-tomorrow">明日</label>
                 </div>
             </div>
 

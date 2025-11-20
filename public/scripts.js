@@ -8,7 +8,7 @@ let alarmList = {};
 async function loadScheduleData() {
     try {
         // 确保时间表.json是可访问的
-        const res = await fetch('时间表.json');
+        const res = await fetch('./时间表.json');
         if (!res.ok) throw new Error(res.status);
         const raw = await res.json();
 
@@ -79,6 +79,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dayTypeEls = {
         workday: document.getElementById('workday'),
         holiday: document.getElementById('holiday')
+    };
+    const dateRangeEls = {
+        today: document.getElementById('date-today'),
+        tomorrow: document.getElementById('date-tomorrow')
     };
     const modeEls = {
         realtime: document.getElementById('mode-realtime'),
@@ -287,10 +291,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!loc) { showNoBusMessage(busCard1, '请选择一个上车地点', true); return; }
 
         const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+        const isTomorrow = getDateRange() === 'tomorrow';
 
         const list = (schedules[day][loc] || []).map(b => {
             const busMin = timeToMin(b.time);
-            const wt = busMin - nowMin;
+            const wt = isTomorrow ? (24 * 60 - nowMin) + busMin : busMin - nowMin;
             return { ...b, waitTime: wt, busMin: busMin, startLocation: loc };
         }).filter(b => b.waitTime >= 0).sort((a, b) => a.busMin - b.busMin);
 
@@ -315,9 +320,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `<span class="note ${cls}">${n}</span>`;
         }).join(' ') || '<span class="note-placeholder">无特殊备注</span>';
 
+        const waitText = bus.waitTime >= 60
+            ? `${Math.floor(bus.waitTime / 60)}小时${bus.waitTime % 60 ? (bus.waitTime % 60) + '分钟' : ''}`
+            : `${bus.waitTime}分钟`;
+
         el.innerHTML = `
                     <span class="bus-time">${bus.time} 发车</span>
-                    <p class="wait-time">将在 <strong>${bus.waitTime}</strong> 分钟后发车</p>
+                    <p class="wait-time">将在 <strong>${waitText}</strong>后发车</p>
                     
                     <div class="bus-details">
                         <p>开往: <strong>${bus.destination}</strong></p>
@@ -353,6 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+        const isTomorrow = getDateRange() === 'tomorrow';
         let combinedList = [];
 
         // 遍历所有站点，查找匹配终点的班次
@@ -360,7 +370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             (schedules[day][stop] || []).forEach(b => {
                 if (b.destination === destination) {
                     const busMin = timeToMin(b.time);
-                    const waitTime = busMin - nowMin;
+                    const waitTime = isTomorrow ? (24 * 60 - nowMin) + busMin : busMin - nowMin;
 
                     if (waitTime >= 0) { // 只显示未发车的班次
                         combinedList.push({
@@ -400,9 +410,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             return `<span class="note ${cls}">${n}</span>`;
         }).join(' ') || '<span class="note-placeholder">无特殊备注</span>';
 
+        const waitText = bus.waitTime >= 60
+            ? `${Math.floor(bus.waitTime / 60)}小时${bus.waitTime % 60 ? (bus.waitTime % 60) + '分钟' : ''}`
+            : `${bus.waitTime}分钟`;
+
         el.innerHTML = `
                     <span class="bus-time">${bus.time} 发车</span>
-                    <p class="wait-time">将在 <strong>${bus.waitTime}</strong> 分钟后发车</p>
+                    <p class="wait-time">将在 <strong>${waitText}</strong>后发车</p>
                     <div class="bus-details">
                         <p>上车地点: <strong>${bus.startLocation}</strong></p>
                         <p>开往: <strong>${bus.destination}</strong></p>
@@ -512,6 +526,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 日期切换 (工作日/节假日)
         dayTypeEls.workday.addEventListener('change', updateModeDisplay);
         dayTypeEls.holiday.addEventListener('change', updateModeDisplay);
+        document.querySelectorAll('input[name="date-range"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                autoSelectDayTypeByDate();
+                updateModeDisplay();
+            });
+        });
         // 地点切换 (Realtime & Destination)
         locationSel.addEventListener('change', onSettingsChange);
         destinationSel.addEventListener('change', onSettingsChange);
@@ -561,19 +581,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     function getDayType() {
         return dayTypeEls.workday.checked ? 'workday' : 'holiday';
     }
+    function getDateRange() {
+        return dateRangeEls.today.checked ? 'today' : 'tomorrow';
+    }
+    function getSelectedDate() {
+        const now = new Date();
+        if (getDateRange() === 'today') return now;
+        return new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    }
+    function autoSelectDayTypeByDate() {
+        const d = getSelectedDate().getDay();
+        const isHoliday = d === 0 || d === 6;
+        dayTypeEls.holiday.checked = isHoliday;
+        dayTypeEls.workday.checked = !isHoliday;
+    }
 
 
     /* ---------- 网站启动器 ---------- */
     function init() {
-        // 自动设日期
-        const today = new Date().getDay();
-        // 假设周六日为节假日，其他为工作日
-        const dayTypeToSelect = (today === 0 || today === 6) ? dayTypeEls.holiday : dayTypeEls.workday;
-        if (dayTypeToSelect) {
-            dayTypeToSelect.checked = true;
-            // 触发 change 事件以确保后续逻辑（如更新显示）能够执行
-            dayTypeToSelect.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        autoSelectDayTypeByDate();
 
         updateClock(); startClock();
         checkTimeForDarkMode(); startDarkModeTimer();
