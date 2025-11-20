@@ -584,9 +584,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 【新增】设置实时查询的默认地点
         if (locationSel.options.length > 0) {
-            // 尝试默认选择“兰园”，如果该选项不存在，则选择列表中的第一个选项
-            const hasLanyuan = Array.from(locationSel.options).some(opt => opt.value === '兰园');
-            locationSel.value = hasLanyuan ? '兰园' : locationSel.options[0].value;
+            // 尝试默认选择“无线谷”，如果该选项不存在，则选择列表中的第一个选项
+            const hasWuxiangu = Array.from(locationSel.options).some(opt => opt.value === '无线谷');
+            locationSel.value = hasWuxiangu ? '无线谷' : locationSel.options[0].value;
         }
 
         // 默认设置“所有时刻表”的筛选为“全部地点”
