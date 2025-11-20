@@ -4,7 +4,8 @@
   "description": "东南大学校园接驳车查询windows版",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "node server.js",
+    "server": "node server.js",
     "dist": "electron-builder"
   },
   "build": {
@@ -30,5 +31,8 @@
   "devDependencies": {
     "electron": "^39.2.2",
     "electron-builder": "^26.0.12"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
