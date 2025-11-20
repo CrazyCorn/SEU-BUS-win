@@ -1,6 +1,6 @@
 {
   "name": "seu-bus-app",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "东南大学校园接驳车查询windows版",
   "main": "main.js",
   "scripts": {

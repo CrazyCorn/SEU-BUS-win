@@ -41,6 +41,7 @@ body.dark-mode {
 }
 
 body {
+    overflow-y: scroll; /* 始终显示滚动条，防止页面跳动 */
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
     background-color: var(--c-bg);
     color: var(--c-text-primary);
@@ -71,7 +72,9 @@ header {
     background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
     color: white;
     padding: 25px 20px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 header h1 {
@@ -80,11 +83,24 @@ header h1 {
     font-weight: 600;
 }
 
+.time-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
 #clock {
-    font-size: 1.1em;
-    opacity: 0.9;
-    margin-top: 8px;
+    font-size: 1.4em;
+    font-weight: 600;
+    margin: 0;
+}
+
+#date-display,
+#weekday-display {
+    font-size: 0.9em;
+    opacity: 0.8;
     font-weight: 300;
+    line-height: 1.4;
 }
 
 /* 5. 控制区域 */

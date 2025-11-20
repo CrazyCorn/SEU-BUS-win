@@ -531,8 +531,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     function startDarkModeTimer() { setInterval(checkTimeForDarkMode, 60_000); }
 
     function updateClock() {
-        const t = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-        clockEl.textContent = t;
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        clockEl.textContent = `${hours}:${minutes}:${seconds}`;
+
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0');
+        const day = now.getDate().toString().padStart(2, '0');
+        
+        const dateElement = document.getElementById('date-display');
+        const weekdayElement = document.getElementById('weekday-display');
+        if (dateElement) dateElement.textContent = `${year}-${month}-${day}`;
+        
+        const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+        if (weekdayElement) weekdayElement.textContent = weekdays[now.getDay()];
     }
 
     function checkTimeForDarkMode() {
@@ -550,7 +564,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 自动设日期
         const today = new Date().getDay();
         // 假设周六日为节假日，其他为工作日
-        (today === 0 || today === 6 ? dayTypeEls.holiday : dayTypeEls.workday).checked = true;
+        const dayTypeToSelect = (today === 0 || today === 6) ? dayTypeEls.holiday : dayTypeEls.workday;
+        if (dayTypeToSelect) {
+            dayTypeToSelect.checked = true;
+            // 触发 change 事件以确保后续逻辑（如更新显示）能够执行
+            dayTypeToSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
 
         updateClock(); startClock();
         checkTimeForDarkMode(); startDarkModeTimer();
