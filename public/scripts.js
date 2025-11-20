@@ -213,7 +213,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const opt = document.createElement('option'); opt.value = l; opt.textContent = l;
             locationSel.appendChild(opt);
         });
-        if (locs.includes(curLoc)) locationSel.value = curLoc;
+        if (locs.includes(curLoc)) {
+            locationSel.value = curLoc;
+        } else if (locs.includes('无线谷')) {
+            locationSel.value = '无线谷';
+        }
 
         // 2. 填充 所有时刻表 (All Schedules) 的下拉菜单
         const curAllLoc = allLocationSel.value;
