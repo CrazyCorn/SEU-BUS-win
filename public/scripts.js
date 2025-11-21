@@ -7,17 +7,18 @@ let alarmList = {};
 // 2. 拉数据：返回 Promise，方便 await
 async function loadScheduleData() {
     try {
-        // 确保时间表.json是可访问的
-        const res = await fetch('./时间表.json');
-        if (!res.ok) throw new Error(res.status);
-        const raw = await res.json();
-
-        // 1. 把“区间循环”拆成离散班次
+        let raw;
+        if (window.appData && typeof window.appData.loadSchedules === 'function') {
+            raw = await window.appData.loadSchedules();
+        } else {
+            const res = await fetch('./时间表.json');
+            if (!res.ok) throw new Error(res.status);
+            raw = await res.json();
+        }
         schedules = expandLoopBuses(raw);
         console.log('时刻表数据已加载并展开');
     } catch (e) {
         console.error('❌ 加载时刻表失败:', e);
-        // 应急数据
         schedules = { workday: {}, holiday: {} };
     }
 }
@@ -597,6 +598,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
+    let scrollIndicatorEl;
+    let indicatorHideTimer;
+    function setupScrollIndicator() {
+        scrollIndicatorEl = document.createElement('div');
+        scrollIndicatorEl.id = 'scroll-indicator';
+        const container = document.getElementById('app-container');
+        (container || document.body).appendChild(scrollIndicatorEl);
+        scrollIndicatorEl.classList.add('hidden');
+        updateScrollIndicator();
+        const onScrollActivity = () => {
+            updateScrollIndicator();
+            if (scrollIndicatorEl) scrollIndicatorEl.classList.remove('hidden');
+            if (indicatorHideTimer) clearTimeout(indicatorHideTimer);
+            indicatorHideTimer = setTimeout(() => {
+                if (scrollIndicatorEl) scrollIndicatorEl.classList.add('hidden');
+            }, 1200);
+        };
+        const scroller = document.getElementById('scroll-content');
+        if (scroller) {
+            scroller.addEventListener('scroll', onScrollActivity, { passive: true });
+            scroller.addEventListener('wheel', onScrollActivity, { passive: true });
+            scroller.addEventListener('touchmove', onScrollActivity, { passive: true });
+        } else {
+            window.addEventListener('scroll', onScrollActivity, { passive: true });
+            window.addEventListener('wheel', onScrollActivity, { passive: true });
+            window.addEventListener('touchmove', onScrollActivity, { passive: true });
+        }
+        window.addEventListener('resize', updateScrollIndicator);
+    }
+    function updateScrollIndicator() {
+        if (!scrollIndicatorEl) return;
+        const scroller = document.getElementById('scroll-content');
+        if (scroller) {
+            const sh = scroller.scrollHeight;
+            const ch = scroller.clientHeight;
+            if (sh <= ch) { scrollIndicatorEl.classList.add('hidden'); return; }
+            const base = ch / sh * ch;
+            const scale = 0.6;
+            const h = Math.max(16, Math.round(base * scale));
+            const maxScroll = sh - ch;
+            const st = scroller.scrollTop;
+            const top = maxScroll > 0 ? Math.round(st / maxScroll * (ch - h)) : 0;
+            scrollIndicatorEl.style.height = h + 'px';
+            scrollIndicatorEl.style.top = top + 'px';
+            return;
+        }
+        const sh = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+        const ih = window.innerHeight;
+        if (sh <= ih) { scrollIndicatorEl.classList.add('hidden'); return; }
+        const base = ih / sh * ih;
+        const scale = 0.6;
+        const h = Math.max(16, Math.round(base * scale));
+        const maxScroll = sh - ih;
+        const st = document.documentElement.scrollTop || document.body.scrollTop;
+        const top = maxScroll > 0 ? Math.round(st / maxScroll * (ih - h)) : 0;
+        scrollIndicatorEl.style.height = h + 'px';
+        scrollIndicatorEl.style.top = top + 'px';
+    }
     /* ---------- 网站启动器 ---------- */
     function init() {
         autoSelectDayTypeByDate();
@@ -621,7 +680,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         bindEvents();
-        updateModeDisplay(); // 根据默认模式显示内容
+        setupScrollIndicator();
+        updateModeDisplay();
     }
 
     init();   // 数据已拿到，可以安心初始化

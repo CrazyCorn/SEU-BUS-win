@@ -1,14 +1,42 @@
 {
-  "name": "seu-bus-app",
-  "version": "1.1.0",
-  "description": "东南大学校园接驳车查询windows版",
+  "name": "seu-bus-desktoptool",
+  "version": "1.0.0",
+  "description": "c",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
-    "server": "node server.js"
+    "server": "node server.js",
+    "widget": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "com.wjhgroup.seubus",
+    "productName": "东大校车桌面小组件",
+    "artifactName": "${productName}-安装程序-${version}.${ext}",
+    "files": [
+      "main.js",
+      "preload.js",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/school.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true
+    }
   },
   "author": "WJHGROUP",
   "license": "MIT",
   "dependencies": {
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^26.0.12"
   }
 }

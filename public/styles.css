@@ -41,13 +41,12 @@ body.dark-mode {
 }
 
 body {
-    overflow-y: scroll; /* 始终显示滚动条，防止页面跳动 */
+    overflow-y: hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
-    background-color: var(--c-bg);
+    background-color: transparent;
     color: var(--c-text-primary);
     margin: 0;
-    padding: 20px 10px;
-    /* 电脑版上下留白 */
+    padding: 12px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -55,32 +54,102 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+html {
+    scrollbar-width: none;
+    scrollbar-color: transparent transparent;
+    font-size: 14px;
+}
+
+body.dark-mode { scrollbar-width: none; scrollbar-color: transparent transparent; }
+
+::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
+
+::-webkit-scrollbar-track { background: transparent !important; border: none !important; }
+::-webkit-scrollbar-track-piece { background: transparent !important; }
+::-webkit-scrollbar-corner { background: transparent !important; }
+
+::-webkit-scrollbar-thumb { background: #cfcfcf; border-radius: 8px; border: none; }
+::-webkit-scrollbar-thumb:hover { background: #bdbdbd; }
+
+body.dark-mode ::-webkit-scrollbar-track { background: transparent !important; border: none !important; }
+
+body.dark-mode ::-webkit-scrollbar-thumb { background: #cfcfcf; border: none; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-button:vertical:increment, ::-webkit-scrollbar-button:vertical:decrement { display: none; }
+
+#scroll-indicator {
+    position: absolute;
+    right: 6px;
+    width: 6px;
+    border-radius: 6px;
+    background: var(--c-primary);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+    z-index: 99999;
+    pointer-events: none;
+}
+
+#scroll-indicator.hidden { opacity: 0; }
+
+body.dark-mode #scroll-indicator { background: var(--c-primary); opacity: 0.7; }
+
+#app-container #scroll-indicator {
+    position: absolute;
+}
+
 /* 3. 主应用容器 */
 #app-container {
     width: 100%;
-    max-width: 500px;
-    background-color: var(--c-card-bg);
-    border-radius: 16px;
+    max-width: 400px;
+    background-color: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    position: relative;
+    height: calc(100vh - 24px);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    clip-path: inset(0 round 12px);
+    background-clip: padding-box;
     box-shadow: 0 8px 24px var(--c-shadow);
     overflow: hidden;
-    border: 1px solid var(--c-border);
+    border: 2px solid rgba(228, 231, 235, 1);
     transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* removed pseudo-element border to avoid double frame */
+
+#scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    scrollbar-gutter: stable;
+}
+
+body.dark-mode #app-container {
+    background-color: rgba(30, 30, 30, 0.6);
+    border-color: rgba(58, 58, 58, 1);
 }
 
 /* 4. 头部 */
 header {
-    background: linear-gradient(135deg, var(--c-primary), var(--c-primary-dark));
+    background: transparent;
     color: white;
     padding: 25px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    -webkit-app-region: drag;
 }
 
 header h1 {
     margin: 0;
     font-size: 1.6em;
     font-weight: 600;
+    color: var(--c-primary);
 }
 
 .time-display {
@@ -93,22 +162,28 @@ header h1 {
     font-size: 1.4em;
     font-weight: 600;
     margin: 0;
+    color: var(--c-primary);
 }
 
 #date-display,
 #weekday-display {
     font-size: 0.9em;
     opacity: 0.8;
-    font-weight: 300;
+    font-weight: 700;
     line-height: 1.4;
+    color: var(--c-primary);
 }
 
 /* 5. 控制区域 */
 .controls {
     padding: 20px 25px;
-    background-color: var(--c-card-bg);
+    background-color: transparent;
     border-bottom: 1px solid var(--c-border);
     transition: background-color 0.3s, border-color 0.3s;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .control-group {
@@ -211,6 +286,10 @@ body.dark-mode .toggle-switch input:checked+label {
 /* 7. 结果区域 */
 #results {
     padding: 10px 25px 25px 25px;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 #results h2 {
@@ -329,6 +408,10 @@ footer {
 /* 10. 路线总览表样式 */
 #all-schedules-container {
     padding: 20px 25px;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .schedule-table {

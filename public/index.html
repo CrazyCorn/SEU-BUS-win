@@ -25,7 +25,8 @@
             </div>
         </header>
 
-        <div class="controls">
+        <div id="scroll-content">
+            <div class="controls">
             <div class="control-group">
                 <label for="mode-toggle">选择查询模式：</label>
                 <div class="toggle-switch mode-switch">
@@ -74,30 +75,29 @@
                     </select>
                 </div>
             </div>
+            </div>
+
+            <div id="results">
+                <h2>接下来的班车：</h2>
+                <div id="bus-card-1" class="bus-card no-bus">
+                    请先选择查询模式和地点
+                </div>
+                <div id="bus-card-2" class="bus-card" style="display:none;">
+                </div>
+            </div>
+
+            <div id="all-schedules-container">
+                <div id="all-schedules-controls" style="margin-bottom: 20px;">
+                    <label for="all-location-select" style="font-weight: bold;">选择起点：</label>
+                    <select id="all-location-select"></select>
+                </div>
+                <div id="schedules-content"></div>
+            </div>
         </div>
 
-        <div id="results">
-            <h2>接下来的班车：</h2>
-            <div id="bus-card-1" class="bus-card no-bus">
-                请先选择查询模式和地点
-            </div>
-            <div id="bus-card-2" class="bus-card" style="display:none;">
-            </div>
-        </div>
+        
 
-        <div id="all-schedules-container">
-            <div id="all-schedules-controls" style="margin-bottom: 20px;">
-                <label for="all-location-select" style="font-weight: bold;">选择起点：</label>
-                <select id="all-location-select"></select>
-            </div>
-            <div id="schedules-content"></div>
-        </div>
-
-        <!-- 页脚：更新为 GitHub SVG 图标和新的提示文本 -->
-        <footer>
-            <p>数据基于2025年10月20日起执行的时刻表</p>
-
-        </footer>
+        
     </div>
 
     <script src="scripts.js"></script>
