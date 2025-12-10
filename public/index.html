@@ -18,10 +18,16 @@
                 <img src="./school.svg" alt="东南大学校徽" class="school-logo" style="height: 40px; width: auto; object-fit: contain;">
                 <h1>校园接驳车实时查询</h1>
             </div>
-            <div class="time-display">
-                <div id="date-display"></div>
-                <div id="weekday-display"></div>
-                <div id="clock">--:--:--</div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- 邮件提醒按钮 -->
+                <button id="email-reminder-btn" class="icon-btn" title="设置邮件提醒">
+                    📧
+                </button>
+                <div class="time-display">
+                    <div id="date-display"></div>
+                    <div id="weekday-display"></div>
+                    <div id="clock">--:--:--</div>
+                </div>
             </div>
         </header>
 
@@ -98,6 +104,77 @@
         
 
         
+    </div>
+
+    <!-- 邮件提醒弹窗 -->
+    <div id="email-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📧 设置邮件提醒</h2>
+                <button class="modal-close" id="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="email-reminder-form">
+                    <div class="form-group">
+                        <label for="user-email">邮箱地址：</label>
+                        <input type="email" id="user-email" placeholder="请输入您的邮箱" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reminder-day-type">日期类型：</label>
+                        <select id="reminder-day-type" required>
+                            <option value="workday">工作日</option>
+                            <option value="holiday">节假日</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reminder-location">上车地点：</label>
+                        <select id="reminder-location" required>
+                            <option value="">请选择地点</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reminder-time">班车时间：</label>
+                        <select id="reminder-time" required>
+                            <option value="">请先选择地点</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reminder-destination">目的地：</label>
+                        <input type="text" id="reminder-destination" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="reminder-advance">提前提醒（分钟）：</label>
+                        <select id="reminder-advance" required>
+                            <option value="5">5分钟</option>
+                            <option value="10" selected>10分钟</option>
+                            <option value="15">15分钟</option>
+                            <option value="20">20分钟</option>
+                            <option value="30">30分钟</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">添加提醒</button>
+                        <button type="button" class="btn-secondary" id="modal-cancel-btn">取消</button>
+                    </div>
+                </form>
+
+                <div id="subscription-status" class="status-message" style="display: none;"></div>
+
+                <!-- 已订阅列表 -->
+                <div id="subscriptions-list" class="subscriptions-container">
+                    <h3>我的订阅</h3>
+                    <div id="subscriptions-content">
+                        <p class="no-subscriptions">暂无订阅</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="scripts.js"></script>

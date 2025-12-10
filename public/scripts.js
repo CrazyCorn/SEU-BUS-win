@@ -16,10 +16,12 @@ async function loadScheduleData() {
             raw = await res.json();
         }
         schedules = expandLoopBuses(raw);
+        window.schedules = schedules; // 设置为全局变量，供邮件提醒功能使用
         console.log('时刻表数据已加载并展开');
     } catch (e) {
         console.error('❌ 加载时刻表失败:', e);
         schedules = { workday: {}, holiday: {} };
+        window.schedules = schedules;
     }
 }
 
@@ -190,7 +192,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         alarmBtn.classList.add('is-set');
         alarmBtn.textContent = `提醒已设 (提前 ${minutes} 分)`;
         const actualTime = new Date(alarmTime).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-        alert(`✅ 提醒设置成功！\n\nPC 端提醒将于 ${actualTime} 触发。\n\n- 提醒时间: 提前 ${minutes} 分钟\n- 班车时间: ${busTime}`);
+        alert(`✅ 提醒设置成功！
+
+PC 端提醒将于 ${actualTime} 触发。
+
+- 提醒时间: 提前 ${minutes} 分钟
+- 班车时间: ${busTime}`);
     };
 
     // 切换提醒输入框 (原逻辑保留)
@@ -686,3 +693,280 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     init();   // 数据已拿到，可以安心初始化
 });
+
+/* ==================== 邮件提醒功能 ==================== */
+
+// 服务器API地址（需要根据实际部署调整）
+const API_BASE_URL = 'http://localhost:3000';
+
+// 获取弹窗元素
+const emailModal = document.getElementById('email-modal');
+const emailReminderBtn = document.getElementById('email-reminder-btn');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+const modalCancelBtn = document.getElementById('modal-cancel-btn');
+const emailForm = document.getElementById('email-reminder-form');
+
+// 获取表单元素
+const userEmailInput = document.getElementById('user-email');
+const reminderDayTypeSelect = document.getElementById('reminder-day-type');
+const reminderLocationSelect = document.getElementById('reminder-location');
+const reminderTimeSelect = document.getElementById('reminder-time');
+const reminderDestinationInput = document.getElementById('reminder-destination');
+const reminderAdvanceSelect = document.getElementById('reminder-advance');
+
+// 状态消息元素
+const statusMessageEl = document.getElementById('subscription-status');
+const subscriptionsContentEl = document.getElementById('subscriptions-content');
+
+// 在页面加载时初始化邮件提醒功能
+document.addEventListener('DOMContentLoaded', () => {
+    initEmailReminder();
+});
+
+function initEmailReminder() {
+    // 打开弹窗
+    emailReminderBtn.addEventListener('click', () => {
+        emailModal.classList.add('show');
+        loadUserEmail();
+        populateReminderLocations();
+        loadUserSubscriptions();
+    });
+
+    // 关闭弹窗
+    modalCloseBtn.addEventListener('click', closeModal);
+    modalCancelBtn.addEventListener('click', closeModal);
+    
+    // 点击弹窗外部关闭
+    emailModal.addEventListener('click', (e) => {
+        if (e.target === emailModal) {
+            closeModal();
+        }
+    });
+
+    // 地点变化时更新班车时间列表
+    reminderLocationSelect.addEventListener('change', updateReminderTimes);
+    reminderDayTypeSelect.addEventListener('change', updateReminderTimes);
+
+    // 班车时间变化时更新目的地
+    reminderTimeSelect.addEventListener('change', updateReminderDestination);
+
+    // 表单提交
+    emailForm.addEventListener('submit', handleFormSubmit);
+}
+
+function closeModal() {
+    emailModal.classList.remove('show');
+    emailForm.reset();
+    hideStatusMessage();
+}
+
+// 加载用户邮箱（从 localStorage 读取）
+function loadUserEmail() {
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+        userEmailInput.value = savedEmail;
+    }
+}
+
+// 保存用户邮箱
+function saveUserEmail(email) {
+    localStorage.setItem('userEmail', email);
+}
+
+// 填充地点下拉列表
+function populateReminderLocations() {
+    // 等待 schedules 数据加载完成
+    const checkSchedules = setInterval(() => {
+        if (window.schedules && Object.keys(window.schedules).length > 0) {
+            clearInterval(checkSchedules);
+            const dayType = reminderDayTypeSelect.value;
+            if (!window.schedules[dayType]) return;
+
+            const locations = Object.keys(window.schedules[dayType]);
+            reminderLocationSelect.innerHTML = '<option value="">请选择地点</option>';
+            
+            locations.forEach(loc => {
+                const option = document.createElement('option');
+                option.value = loc;
+                option.textContent = loc;
+                reminderLocationSelect.appendChild(option);
+            });
+        }
+    }, 100);
+}
+
+// 更新班车时间列表
+function updateReminderTimes() {
+    const dayType = reminderDayTypeSelect.value;
+    const location = reminderLocationSelect.value;
+    
+    reminderTimeSelect.innerHTML = '<option value="">请先选择地点</option>';
+    reminderDestinationInput.value = '';
+    
+    if (!location || !window.schedules || !window.schedules[dayType]) return;
+
+    const buses = window.schedules[dayType][location] || [];
+    
+    if (buses.length === 0) {
+        reminderTimeSelect.innerHTML = '<option value="">该地点暂无班车</option>';
+        return;
+    }
+
+    reminderTimeSelect.innerHTML = '<option value="">请选择班车时间</option>';
+    
+    buses.forEach(bus => {
+        const option = document.createElement('option');
+        option.value = bus.time;
+        option.textContent = `${bus.time} - ${bus.destination}`;
+        option.dataset.destination = bus.destination;
+        reminderTimeSelect.appendChild(option);
+    });
+}
+
+// 更新目的地
+function updateReminderDestination() {
+    const selectedOption = reminderTimeSelect.options[reminderTimeSelect.selectedIndex];
+    if (selectedOption && selectedOption.dataset.destination) {
+        reminderDestinationInput.value = selectedOption.dataset.destination;
+    } else {
+        reminderDestinationInput.value = '';
+    }
+}
+
+// 处理表单提交
+async function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const email = userEmailInput.value.trim();
+    const dayType = reminderDayTypeSelect.value;
+    const location = reminderLocationSelect.value;
+    const time = reminderTimeSelect.value;
+    const destination = reminderDestinationInput.value;
+    const advanceMinutes = reminderAdvanceSelect.value;
+
+    // 验证字段
+    if (!email || !dayType || !location || !time || !destination) {
+        showStatusMessage('请填写所有必填字段', 'error');
+        return;
+    }
+
+    // 保存邮箱
+    saveUserEmail(email);
+
+    // 发送请求到服务器
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/subscribe`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email,
+                dayType,
+                location,
+                time,
+                destination,
+                advanceMinutes: parseInt(advanceMinutes)
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showStatusMessage('✅ 订阅成功！将会在班车出发前发送邮件提醒', 'success');
+            emailForm.reset();
+            loadUserEmail();
+            loadUserSubscriptions();
+        } else {
+            showStatusMessage(`❌ 订阅失败：${data.message}`, 'error');
+        }
+    } catch (error) {
+        console.error('订阅失败:', error);
+        showStatusMessage('❌ 网络错误，请确保服务器已启动', 'error');
+    }
+}
+
+// 显示状态消息
+function showStatusMessage(message, type) {
+    statusMessageEl.textContent = message;
+    statusMessageEl.className = `status-message ${type}`;
+    statusMessageEl.style.display = 'block';
+    
+    // 5秒后自动隐藏
+    setTimeout(hideStatusMessage, 5000);
+}
+
+function hideStatusMessage() {
+    statusMessageEl.style.display = 'none';
+}
+
+// 加载用户订阅列表
+async function loadUserSubscriptions() {
+    const email = userEmailInput.value.trim();
+    if (!email) {
+        subscriptionsContentEl.innerHTML = '<p class="no-subscriptions">请先输入邮箱</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/subscriptions/${encodeURIComponent(email)}`);
+        const data = await response.json();
+
+        if (data.success && data.subscriptions.length > 0) {
+            renderSubscriptions(data.subscriptions);
+        } else {
+            subscriptionsContentEl.innerHTML = '<p class="no-subscriptions">暂无订阅</p>';
+        }
+    } catch (error) {
+        console.error('加载订阅列表失败:', error);
+        subscriptionsContentEl.innerHTML = '<p class="no-subscriptions">加载失败</p>';
+    }
+}
+
+// 渲染订阅列表
+function renderSubscriptions(subscriptions) {
+    subscriptionsContentEl.innerHTML = '';
+    
+    subscriptions.forEach(sub => {
+        const item = document.createElement('div');
+        item.className = 'subscription-item';
+        
+        item.innerHTML = `
+            <div class="subscription-info">
+                <p><strong>${sub.location}</strong> <span class="subscription-time">${sub.time}</span> → ${sub.destination}</p>
+                <p>📅 ${sub.dayType === 'workday' ? '工作日' : '节假日'} | ⏰ 提前 ${sub.advanceMinutes} 分钟</p>
+            </div>
+            <button class="btn-delete" data-id="${sub.id}">删除</button>
+        `;
+        
+        subscriptionsContentEl.appendChild(item);
+    });
+    
+    // 绑定删除按钮事件
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', () => deleteSubscription(btn.dataset.id));
+    });
+}
+
+// 删除订阅
+async function deleteSubscription(id) {
+    if (!confirm('确定要删除这个订阅吗？')) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/subscribe/${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showStatusMessage('✅ 已取消订阅', 'success');
+            loadUserSubscriptions();
+        } else {
+            showStatusMessage(`❌ 删除失败：${data.message}`, 'error');
+        }
+    } catch (error) {
+        console.error('删除订阅失败:', error);
+        showStatusMessage('❌ 网络错误', 'error');
+    }
+}
