@@ -1,6 +1,9 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 
+// 设置缓存目录到用户数据目录，避免权限问题
+app.setPath('userData', path.join(app.getPath('appData'), 'seu-bus-transportation'));
+
 let tray = null;
 let win = null;
 
@@ -14,7 +17,8 @@ function createWindow() {
     backgroundColor: '#00000000',
     skipTaskbar: true, // 不在任务栏中显示
     type: 'desktop',
-    focusable: false,
+    focusable: true, // 改为 true，允许输入框获得焦点
+    alwaysOnTop: false, // 不总是置顶，方便弹窗交互
     webPreferences: {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')

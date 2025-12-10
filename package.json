@@ -1,13 +1,14 @@
 {
   "name": "seu-bus-desktoptool",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "c",
   "main": "main.js",
   "scripts": {
     "start": "node server.js",
     "server": "node server.js",
     "widget": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder",
+    "dist": "electron-builder"
   },
   "build": {
     "appId": "com.wjhgroup.seubus",
@@ -24,10 +25,12 @@
       "icon": "public/school.ico"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": true,
-      "allowToChangeInstallationDirectory": false,
-      "createDesktopShortcut": true
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "allowElevation": true
     }
   },
   "author": "WJHGROUP",
@@ -36,7 +39,10 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
+    "7zip-bin": "^5.2.0",
+    "app-builder-lib": "^26.0.12",
+    "dmg-builder": "^26.0.12",
+    "electron": "^31.7.7",
     "electron-builder": "^26.0.12"
   }
 }

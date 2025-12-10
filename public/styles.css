@@ -127,6 +127,7 @@ body.dark-mode #scroll-indicator { background: var(--c-primary); opacity: 0.7; }
     flex-direction: column;
     align-items: center;
     scrollbar-gutter: stable;
+    padding-bottom: 70px; /* 为底部按钮预留空间 */
 }
 
 body.dark-mode #app-container {
@@ -138,7 +139,7 @@ body.dark-mode #app-container {
 header {
     background: transparent;
     color: white;
-    padding: 25px 20px;
+    padding: 20px 20px 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -172,6 +173,25 @@ header h1 {
     font-weight: 700;
     line-height: 1.4;
     color: var(--c-primary);
+}
+
+/* 邮件提醒按钮底部区域 */
+.email-reminder-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--c-border);
+    -webkit-app-region: no-drag;
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+}
+
+body.dark-mode .email-reminder-footer {
+    background: linear-gradient(to top, rgba(30, 30, 30, 0.98), rgba(30, 30, 30, 0.95));
 }
 
 /* 5. 控制区域 */
@@ -622,6 +642,51 @@ body.dark-mode .icon-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* 邮件提醒按钮样式（横向布局） */
+.email-reminder-btn {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: var(--c-primary);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-app-region: no-drag;
+    box-shadow: 0 3px 10px rgba(0, 90, 156, 0.25);
+    width: 100%;
+}
+
+.email-reminder-btn .icon {
+    font-size: 1.4em;
+    line-height: 1;
+}
+
+.email-reminder-btn .text {
+    font-size: 1em;
+    line-height: 1;
+    white-space: nowrap;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.email-reminder-btn:hover {
+    background-color: var(--c-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 90, 156, 0.4);
+}
+
+.email-reminder-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 90, 156, 0.3);
+}
+
 /* 弹窗样式 */
 .modal {
     display: none;
@@ -698,6 +763,10 @@ body.dark-mode .icon-btn:hover {
     justify-content: center;
     border-radius: 50%;
     transition: background-color 0.2s;
+    -webkit-app-region: no-drag;
+    pointer-events: auto;
+    z-index: 10001;
+    position: relative;
 }
 
 .modal-close:hover {

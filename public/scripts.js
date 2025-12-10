@@ -718,23 +718,45 @@ const reminderAdvanceSelect = document.getElementById('reminder-advance');
 const statusMessageEl = document.getElementById('subscription-status');
 const subscriptionsContentEl = document.getElementById('subscriptions-content');
 
+// 预加载标志
+let reminderDataPreloaded = false;
+
 // 在页面加载时初始化邮件提醒功能
 document.addEventListener('DOMContentLoaded', () => {
     initEmailReminder();
+    // 预加载地点数据，加快首次打开速度
+    preloadReminderData();
 });
 
 function initEmailReminder() {
-    // 打开弹窗
+    // 打开弹窗（优化：如果已预加载则直接显示）
     emailReminderBtn.addEventListener('click', () => {
         emailModal.classList.add('show');
         loadUserEmail();
-        populateReminderLocations();
+        
+        // 如果数据已预加载，直接使用，否则重新加载
+        if (!reminderDataPreloaded) {
+            populateReminderLocations();
+        }
+        
         loadUserSubscriptions();
     });
 
-    // 关闭弹窗
-    modalCloseBtn.addEventListener('click', closeModal);
-    modalCancelBtn.addEventListener('click', closeModal);
+    // 关闭弹窗 - 确保按钮可点击
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal();
+        });
+    }
+    
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+    }
     
     // 点击弹窗外部关闭
     emailModal.addEventListener('click', (e) => {
@@ -745,7 +767,10 @@ function initEmailReminder() {
 
     // 地点变化时更新班车时间列表
     reminderLocationSelect.addEventListener('change', updateReminderTimes);
-    reminderDayTypeSelect.addEventListener('change', updateReminderTimes);
+    reminderDayTypeSelect.addEventListener('change', () => {
+        fillReminderLocations();
+        updateReminderTimes();
+    });
 
     // 班车时间变化时更新目的地
     reminderTimeSelect.addEventListener('change', updateReminderDestination);
@@ -773,26 +798,63 @@ function saveUserEmail(email) {
     localStorage.setItem('userEmail', email);
 }
 
-// 填充地点下拉列表
-function populateReminderLocations() {
+// 预加载地点数据（在页面加载时调用）
+function preloadReminderData() {
     // 等待 schedules 数据加载完成
-    const checkSchedules = setInterval(() => {
+    const checkInterval = setInterval(() => {
         if (window.schedules && Object.keys(window.schedules).length > 0) {
-            clearInterval(checkSchedules);
-            const dayType = reminderDayTypeSelect.value;
-            if (!window.schedules[dayType]) return;
-
-            const locations = Object.keys(window.schedules[dayType]);
-            reminderLocationSelect.innerHTML = '<option value="">请选择地点</option>';
-            
-            locations.forEach(loc => {
-                const option = document.createElement('option');
-                option.value = loc;
-                option.textContent = loc;
-                reminderLocationSelect.appendChild(option);
-            });
+            clearInterval(checkInterval);
+            // 预填充工作日数据
+            fillReminderLocations();
+            reminderDataPreloaded = true;
+            console.log('邮件提醒数据预加载完成');
         }
     }, 100);
+    
+    // 10秒后超时
+    setTimeout(() => {
+        clearInterval(checkInterval);
+    }, 10000);
+}
+
+// 填充地点下拉列表（优化：直接使用已加载数据）
+function populateReminderLocations() {
+    // 直接检查数据是否已加载
+    if (window.schedules && Object.keys(window.schedules).length > 0) {
+        fillReminderLocations();
+    } else {
+        // 如果数据还未加载，显示加载提示并等待
+        reminderLocationSelect.innerHTML = '<option value="">加载中...</option>';
+        // 最多等待 3 秒
+        let attempts = 0;
+        const maxAttempts = 30;
+        const checkSchedules = setInterval(() => {
+            attempts++;
+            if (window.schedules && Object.keys(window.schedules).length > 0) {
+                clearInterval(checkSchedules);
+                fillReminderLocations();
+            } else if (attempts >= maxAttempts) {
+                clearInterval(checkSchedules);
+                reminderLocationSelect.innerHTML = '<option value="">加载失败，请刷新</option>';
+            }
+        }, 100);
+    }
+}
+
+// 填充地点列表的实际逻辑
+function fillReminderLocations() {
+    const dayType = reminderDayTypeSelect.value;
+    if (!window.schedules[dayType]) return;
+
+    const locations = Object.keys(window.schedules[dayType]);
+    reminderLocationSelect.innerHTML = '<option value="">请选择地点</option>';
+    
+    locations.forEach(loc => {
+        const option = document.createElement('option');
+        option.value = loc;
+        option.textContent = loc;
+        reminderLocationSelect.appendChild(option);
+    });
 }
 
 // 更新班车时间列表

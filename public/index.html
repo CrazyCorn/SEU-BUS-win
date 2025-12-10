@@ -10,24 +10,17 @@
 
 <body>
     <div id="app-container">
-        <!-- 头部：新增Logo和基本的Flex布局来对齐元素 -->
-        <header style="display: flex; justify-content: space-between; align-items: center;">
-            <!-- Logo 和标题的容器 -->
+        <!-- 头部：Logo和时间显示 -->
+        <header>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <!-- 东南大学 Logo -->
                 <img src="./school.svg" alt="东南大学校徽" class="school-logo" style="height: 40px; width: auto; object-fit: contain;">
                 <h1>校园接驳车实时查询</h1>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <!-- 邮件提醒按钮 -->
-                <button id="email-reminder-btn" class="icon-btn" title="设置邮件提醒">
-                    📧
-                </button>
-                <div class="time-display">
-                    <div id="date-display"></div>
-                    <div id="weekday-display"></div>
-                    <div id="clock">--:--:--</div>
-                </div>
+            <div class="time-display">
+                <div id="date-display"></div>
+                <div id="weekday-display"></div>
+                <div id="clock">--:--:--</div>
             </div>
         </header>
 
@@ -99,6 +92,14 @@
                 </div>
                 <div id="schedules-content"></div>
             </div>
+        </div>
+
+        <!-- 邮件提醒按钮区域（页面底部） -->
+        <div class="email-reminder-footer">
+            <button id="email-reminder-btn" class="email-reminder-btn" title="设置邮件提醒">
+                <span class="icon">📧</span>
+                <span class="text">邮件提醒</span>
+            </button>
         </div>
 
         
