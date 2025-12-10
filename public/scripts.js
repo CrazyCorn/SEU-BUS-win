@@ -697,7 +697,10 @@ PC 端提醒将于 ${actualTime} 触发。
 /* ==================== 邮件提醒功能 ==================== */
 
 // 服务器API地址（需要根据实际部署调整）
-const API_BASE_URL = 'http://localhost:3000';
+// 本地开发：http://localhost:3000
+// 远程服务器（直接访问）：http://118.31.74.253:3001
+// 远程服务器（反向代理）：https://api.your-domain.com
+const API_BASE_URL = 'http://118.31.74.253:3001';  // 👈 部署时修改这里
 
 // 获取弹窗元素
 const emailModal = document.getElementById('email-modal');
